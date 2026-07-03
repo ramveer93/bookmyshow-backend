@@ -1,158 +1,135 @@
-# How to setup
+# DummyBookMyShow 🎬
 
-  ```git
-  git clone https://github.com/ramveer93/dummyBookMyShow.git
-  ```
-  ```mvn
-  mvn clean install
-  ```
-- install mysql version 8 in your local machine
-- Go to src/main/resources config.sql and run the commands mentioned in this file on mysql cmd prompt
-- Restore db dump to mysql from src/main/resources/Dump20201019.sql
-- Run the application as spring boot application
+![Java](https://img.shields.io/badge/Java_8-ED8B00?style=flat&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=flat&logo=springboot&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat&logo=mysql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=flat&logo=springsecurity&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger_UI-85EA2D?style=flat&logo=swagger&logoColor=black)
 
-# Swagger documents
-```git
- http://localhost:8080/swagger-ui.html
- ```
- 
- # Run the APIs in steps
- - First create a user using /v1/addUser
- ```json
- {
-  "authentication": "admin",
-  "email": "panjaguttamall@mmall.com",
-  "firstName": "Jayram",
-  "lastName": "Nayak",
-  "mobileNumber": "8712098768",
-  "userType": "ADMIN"
-}
-```
- - Then Add a theater using POST /v1/registerTheater
- ```json
-{
-  "address": "Ground Floor, Vibrant Mall , Panjagutta",
-  "city": "Hyderabad",
-  "country": "India",
-  "languages": "Hindi, English,Telugu",
-  "name": "Vibrant Mall Hyderabad",
-  "userName": "NayakJayram8712098768"
-}
-```
-- Add a movie to this theater by calling POST /v1/registerMovie
-```json
-{
-  "activeDateEnd": "2021-10-18 19:43:00",
-  "activeDateStart": "2020-10-18 19:43:00",
-  "castId": null,
-  "director": "Raaj Shaandilyaa",
-  "duration": "132 min",
-  "language": "HINDI",
-  "name": "Dream Girl",
-  "plot": "Rom-com Movie, directed by Raaj Shaandilyaa, stars Ayushmann Khurrana who plays a 'dream girl'. In every love story, there is always one trying to win the heart of the other, who could be the dream girl",
-  "posterUrl": "https://m.media-amazon.com/images/M/MV5BNmUyMzU3YjgtZTliNS00NWM2LWI5ODgtYWE3ZjAzODgyNjNhXkEyXkFqcGdeQXVyNjY1MTg4Mzc@._V1_SX300.jpg",
-  "rating": "8.0",
-  "releaseYear": "2020",
-  "theaterId": "VibrantMallHyderabad",
-  "trailerUrl": "not available",
-  "type": "Drama, Comedy"
-}
-```
-- Add cast to this movie by calling POST /v1/addCast
-```json
-[
-{
-  "castDetails": "AyushMan Khurana as Karan Singh",
-  "characterName": "AyushMan Khurana",
-  "characterOccupation": "actor",
-  "movieId": "DreamGirl"
-},
+A **movie ticket booking system** inspired by BookMyShow, built as a system design exercise demonstrating real-world backend patterns: JWT authentication, relational entity modeling, seat availability management, and RESTful API design.
 
-{
-  "castDetails": "Vijay Raj as Rajpal",
-  "characterName": "Vijay Raj",
-  "characterOccupation": "actor",
-  "movieId": "DreamGirl"
-}]
-```
-- Add screens in a theater which are showing this movie using POST /v1/registerScreen
-```json
-{
-  "endsAt": "2020-10-18 09:30:00",
-  "screenDetails": {
-    "movieId": "DreamGirl",
-    "startsAt": "2020-10-18 06:00:00",
-    "theaterId": "VibrantMallHyderabad"
-  }
-}
-```
-- Initialize the seat matrix for this screen by calling POST /v1/addDefaultSeatMatrix
-```json
-{
-  "booked": true,
-  "price": 0,
-  "primaryKey": {
-    "movieId": "DreamGirl",
-    "screenStartsAt": "2020-10-18 06:00:00",
-    "seatNumber": "A1",
-    "theaterId": "VibrantMallHyderabad"
-  },
-  "seatType": "NORMAL"
-}
-```
-- Get the list of supported cities in system by calling GET /v1/getSupportedCities
-- Get the list of now showing movies by calling end point GET /v1/getMoviesByCity
-- Get the list of cinemas/screens showing this movie in a city by calling GET /v1/getScreensShowingMovie
-- Get the seat availabilities GET /v1/getAvailabilityOnAScreen
-- Book the seats POST /v1/bookSeats with below json
-```json
-[
-   {
-    "booked": true,
-    "price": 100,
-    "primaryKey": {
-      "movieId": "DreamGirl",
-      "screenStartsAt": "2020-10-18 06:00:00",
-      "seatNumber": "A0",
-      "theaterId": "VibrantMallHyderabad"
-    },
-    "seatType": "NORMAL"
-  },
-   {
-    "booked": true,
-    "price": 100,
-    "primaryKey": {
-      "movieId": "DreamGirl",
-      "screenStartsAt": "2020-10-18 06:00:00",
-      "seatNumber": "A1",
-      "theaterId": "VibrantMallHyderabad"
-    },
-    "seatType": "NORMAL"
-  },
-   {
-    "booked": true,
-    "price": 100,
-    "primaryKey": {
-      "movieId": "DreamGirl",
-      "screenStartsAt": "2020-10-18 06:00:00",
-      "seatNumber": "A2",
-      "theaterId": "VibrantMallHyderabad"
-    },
-    "seatType": "NORMAL"
-  }
-]
-```
-here we are trying to book three seats A0, A1 and A2.
-- Once the seats booked above api should give details about seat,user, theater and movie 
-- If we try to book the seats which are not available , user will get appropriate error msg 
+## Architecture
 
-# Authorization
-- To authorize the APIs , we have to un comment line 58 of SecurityConfig.java , this will start authenticating all the end points except /v1/token and /v1/addUser
-https://github.com/ramveer93/dummyBookMyShow/blob/c9f8b8815280dd375faa5ac1a071fa71eda04c82/src/main/java/com/dummy/bookmyshow/security/SecurityConfig.java#L58
-```java
-.anyRequest().authenticated().and().exceptionHandling()
+```mermaid
+graph TD
+    Client([Client / Swagger UI]) --> Auth[Authentication Controller]
+    Client --> API[REST API Controllers]
+    
+    Auth --> JWT[JWT Token Generation]
+    JWT --> Filter[JWT Filter]
+    Filter --> API
+    
+    subgraph Controllers
+        API --> MovieCtrl[Movie Controller]
+        API --> TheaterCtrl[Theater Controller]
+        API --> ScreenCtrl[Screen Controller]
+        API --> SeatCtrl[Seat Matrix Controller]
+        API --> UserCtrl[User Controller]
+        API --> CastCtrl[Cast Controller]
+    end
+    
+    subgraph Service Layer
+        MovieCtrl --> MovieSvc[Movie Service]
+        TheaterCtrl --> TheaterSvc[Theater Service]
+        ScreenCtrl --> ScreenSvc[Screen Service]
+        SeatCtrl --> SeatSvc[Seat Matrix Service]
+    end
+    
+    subgraph Data Layer
+        MovieSvc --> DB[(MySQL Database)]
+        TheaterSvc --> DB
+        ScreenSvc --> DB
+        SeatSvc --> DB
+    end
 ```
-# License 
-MIT License 2021
 
+## Domain Model
 
+The system models the following core entities:
+
+| Entity | Description |
+|--------|-------------|
+| **Movie** | Film details (name, genre, release date) |
+| **Theater** | Cinema hall (name, location, city) |
+| **Screen** | Individual screen within a theater |
+| **Show** | A screening — links a Movie to a Screen at a specific time |
+| **SeatMatrix** | Seat availability per show (seat number, type, price, status) |
+| **Booking** | User booking with payment reference |
+| **Payment** | Payment transaction details |
+| **User** | Registered user with JWT authentication |
+| **Cast** | Actors/directors associated with movies |
+| **Notification** | User notifications for bookings |
+| **Offer** | Promotional offers and discounts |
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/authenticate` | Login and receive JWT token |
+| `GET` | `/movies` | List all movies |
+| `POST` | `/movies` | Add a new movie |
+| `GET` | `/theaters` | List all theaters |
+| `POST` | `/theaters` | Add a new theater |
+| `GET` | `/screens` | List all screens |
+| `POST` | `/screens` | Add a new screen |
+| `GET` | `/seatmatrix` | Get seat availability |
+| `POST` | `/seatmatrix` | Create seat matrix for a show |
+| `GET` | `/users` | List users |
+| `POST` | `/users` | Register a new user |
+| `GET` | `/casts` | List cast members |
+
+> All endpoints (except `/authenticate`) require a valid JWT Bearer token.
+
+## Tech Stack
+
+- **Backend**: Java 8, Spring Boot, Spring MVC
+- **Security**: Spring Security with JWT (JSON Web Tokens)
+- **Database**: MySQL with Spring Data JPA / Hibernate
+- **API Docs**: Swagger UI (auto-generated)
+- **Containerization**: Docker
+- **Build**: Maven
+
+## Getting Started
+
+### Prerequisites
+- Java 8+
+- Maven
+- MySQL (or Docker)
+
+### Run with Docker
+
+```bash
+# Build the application
+mvn clean package -DskipTests
+
+# Build and run the Docker image
+docker build -t bookmyshow .
+docker run -p 8080:8080 bookmyshow
+```
+
+### Run Locally
+
+1. Configure your MySQL connection in `src/main/resources/application.properties`
+2. Build and run:
+   ```bash
+   mvn clean install
+   mvn spring-boot:run
+   ```
+3. Access Swagger UI at `http://localhost:8080/swagger-ui.html`
+
+### Authenticate
+```bash
+curl -X POST http://localhost:8080/authenticate \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "password"}'
+```
+Use the returned JWT token in the `Authorization: Bearer <token>` header for subsequent requests.
+
+---
+
+<p align="center">
+  Built by <a href="https://profile-64ef8.firebaseapp.com/">Ramveer Singh</a> · 
+  <a href="https://www.linkedin.com/in/ramveer7up/">LinkedIn</a> · 
+  <a href="https://github.com/ramveer93">GitHub</a>
+</p>
