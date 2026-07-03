@@ -1,4 +1,4 @@
-# DummyBookMyShow 🎬
+# BookMyShow System Design 🎬
 
 ![Java](https://img.shields.io/badge/Java_8-ED8B00?style=flat&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=flat&logo=springboot&logoColor=white)
@@ -80,6 +80,12 @@ The system models the following core entities:
 | `GET` | `/casts` | List cast members |
 
 > All endpoints (except `/authenticate`) require a valid JWT Bearer token.
+
+## Technical Highlights
+
+### Handling Double Bookings (Concurrency)
+To prevent the classic double-booking problem (where two users attempt to book the same seat simultaneously), this system implements **Distributed Locking using Redis**. 
+When a user selects a seat, a Redis lock is acquired for that specific seat ID. If another user attempts to select the same seat while the lock is held, the system rejects the request until the first transaction completes (either successful booking or timeout). This ensures strong consistency and avoids race conditions during high-traffic movie releases.
 
 ## Tech Stack
 
