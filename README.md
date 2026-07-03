@@ -87,6 +87,53 @@ The system models the following core entities:
 To prevent the classic double-booking problem (where two users attempt to book the same seat simultaneously), this system implements **Distributed Locking using Redis**. 
 When a user selects a seat, a Redis lock is acquired for that specific seat ID. If another user attempts to select the same seat while the lock is held, the system rejects the request until the first transaction completes (either successful booking or timeout). This ensures strong consistency and avoids race conditions during high-traffic movie releases.
 
+```java
+@Service
+public class BookingService {
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+    
+    @Autowired
+    private SeatMatrixRepository seatMatrixRepository;
+
+    public boolean bookSeat(Long showId, Long seatId, Long userId) {
+        String lockKey = "lock:show:" + showId + ":seat:" + seatId;
+        String lockValue = UUID.randomUUID().toString();
+        
+        // Try to acquire lock with 5-minute expiration
+        Boolean acquired = redisTemplate.opsForValue()
+            .setIfAbsent(lockKey, lockValue, 5, TimeUnit.MINUTES);
+            
+        if (Boolean.TRUE.equals(acquired)) {
+            try {
+                // Lock acquired, safe to proceed with booking logic
+                SeatMatrix seat = seatMatrixRepository.findById(seatId)
+                    .orElseThrow(() -> new EntityNotFoundException("Seat not found"));
+                    
+                if (seat.getStatus() == SeatStatus.AVAILABLE) {
+                    // Update status and save
+                    seat.setStatus(SeatStatus.BOOKED);
+                    seatMatrixRepository.save(seat);
+                    
+                    // Proceed with payment and finalize booking...
+                    return true;
+                }
+            } finally {
+                // Release the lock (using Lua script to ensure atomicity in production)
+                String currentValue = (String) redisTemplate.opsForValue().get(lockKey);
+                if (lockValue.equals(currentValue)) {
+                    redisTemplate.delete(lockKey);
+                }
+            }
+        }
+        
+        // Failed to acquire lock (another user is currently booking this seat)
+        throw new ConcurrentBookingException("Seat is currently being booked by another user");
+    }
+}
+```
+
 ## Tech Stack
 
 - **Backend**: Java 8, Spring Boot, Spring MVC
